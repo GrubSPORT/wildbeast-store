@@ -276,6 +276,28 @@ body{max-width:430px;margin:0 auto;}
 .delete-request button:hover{background:#a83030;}
 .delete-request button:disabled{background:#ccc;cursor:not-allowed;}
 
+
+/* 受付期限表示・終了画面 */
+.deadline-banner{
+  margin:14px 18px 0;padding:10px 14px;background:#FFF8E7;
+  border:1px solid #F0C84D;border-radius:8px;font-size:12px;
+  color:#7c5a00;line-height:1.5;text-align:center;
+}
+.deadline-banner strong{color:#1A1635;font-size:13px;}
+
+.closed-screen{
+  padding:60px 24px;text-align:center;
+}
+.closed-screen .icon{font-size:48px;margin-bottom:20px;}
+.closed-screen h2{font-size:20px;color:#1A1635;margin-bottom:14px;font-weight:700;}
+.closed-screen p{font-size:14px;color:#666;line-height:1.8;margin-bottom:24px;}
+.closed-line-btn{
+  display:inline-block;padding:16px 32px;background:#06C755;color:#fff;
+  text-decoration:none;border-radius:8px;font-size:15px;font-weight:700;
+  box-shadow:0 4px 12px rgba(6,199,85,0.3);
+}
+.closed-line-btn:hover{background:#05a548;}
+
 </style>
 </head>
 <body>
@@ -290,8 +312,11 @@ body{max-width:430px;margin:0 auto;}
     <div class="hero-team">WILDBEAST <span>STORE</span></div>
     <div class="hero-sub">Sayamagaoka H.S. WILD BEAST</div>
   </div>
+  <div class="deadline-banner" id="deadline-banner" style="display:none;">
+    <strong>受付期限</strong>：<span id="deadline-text">-</span> まで
+  </div>
   <div class="form-body">
-    <div class="f-intro">狭山ヶ丘高校WILDBEAST様 専用注文アプリです</div>
+    <div class="f-intro">WILDBEAST専用注文アプリです。</div>
     <div class="f-sub">初回のみ入力してください。<br>次回からは自動的に入力されます。</div>
     <div class="f-group">
       <label class="f-label">選手の名前</label>
@@ -597,6 +622,42 @@ async function loadShop() {
   }
 }
 
+
+// ── 受付期限情報の処理 ─────
+function handleDeadlineInfo(deadlineStr, isOpen) {
+  // URLパラメータ test=1 でバイパス
+  const params = new URLSearchParams(window.location.search);
+  const bypassDeadline = params.get('test') === '1';
+  
+  if (bypassDeadline) {
+    console.log('[TEST MODE] 受付期限チェックをバイパス');
+    return;
+  }
+  
+  // 受付期限バナーを表示
+  if (deadlineStr) {
+    const banner = document.getElementById('deadline-banner');
+    const text = document.getElementById('deadline-text');
+    if (banner && text) {
+      // 「2026/06/10 23:59」→「6月10日 23:59」
+      try {
+        const m = deadlineStr.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})\s+(\d{1,2}):(\d{2})$/);
+        if (m) {
+          text.textContent = `${parseInt(m[2])}月${parseInt(m[3])}日 ${m[4]}:${m[5]}`;
+        } else {
+          text.textContent = deadlineStr;
+        }
+        banner.style.display = 'block';
+      } catch(e) {}
+    }
+  }
+  
+  // 受付終了の場合：closed画面に遷移
+  if (deadlineStr && isOpen === false) {
+    goto('s-closed');
+  }
+}
+
 async function fetchAndCache(showError) {
   try {
     const res  = await fetch(GAS_URL, { method: 'GET' });
@@ -608,6 +669,9 @@ async function fetchAndCache(showError) {
     setCachedProducts(fresh);
     products = fresh;
     renderProductList();
+    
+    // ★ 受付期限の処理
+    handleDeadlineInfo(json.deadline, json.isOpen);
   } catch(err) {
     if (showError) {
       document.getElementById('products-list').innerHTML =
@@ -1151,6 +1215,23 @@ function requestDataDeletion() {
 }
 
 </script>
+
+
+  <!-- 受付終了画面 -->
+  <div class="screen" id="s-closed">
+    <div class="closed-screen">
+      <div class="icon">📅</div>
+      <h2>受付期間が終了しました</h2>
+      <p>
+        ご注文の受付は終了いたしました。<br>
+        ご不明な点・お問い合わせは下記の公式LINEへ<br>
+        お気軽にご連絡ください。
+      </p>
+      <a href="https://lin.ee/DxZ89bA" target="_blank" class="closed-line-btn">
+        💬 Grub SPORT 公式LINE で問い合わせる
+      </a>
+    </div>
+  </div>
 
 <!-- 個人情報保護モーダル -->
 <div class="modal-bg" id="privacy-modal" onclick="if(event.target===this)hidePrivacy()">
