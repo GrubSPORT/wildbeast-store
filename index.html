@@ -297,16 +297,12 @@ body{max-width:430px;margin:0 auto;}
       <label class="f-label">選手の名前</label>
       <input class="f-input" id="p-name" placeholder="例：田中 太郎" autocomplete="name">
     </div>
-    <div style="display:flex;gap:10px;">
-      <div class="f-group" style="flex:1;">
-        <label class="f-label">期</label>
-        <input class="f-input" id="p-grade" placeholder="例：3" type="number" min="1" max="99">
-      </div>
-      <div class="f-group" style="flex:1;">
-        <label class="f-label">背番号</label>
-        <input class="f-input" id="p-number" placeholder="例：21" type="number" min="0" max="99">
-      </div>
+    <div class="f-group">
+      <label class="f-label">背番号</label>
+      <input class="f-input" id="p-number" placeholder="例：21" type="number" min="0" max="99">
     </div>
+    <!-- 期(p-grade)欄は削除済み(JSは空文字で動作継続) -->
+    <input type="hidden" id="p-grade" value="">
     <div class="f-group">
       <label class="f-label">保護者メールアドレス</label>
       <input class="f-input" id="p-email" type="email" placeholder="例：parent@example.com"
